@@ -3,6 +3,7 @@ package lilypad.server.proxy.net;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -40,10 +41,14 @@ public class ProxyInboundHandler extends SimpleChannelInboundHandler<Packet> {
 	@Override
 	public void channelActive(ChannelHandlerContext context) throws Exception {
 		String address = this.getAddress(context.channel());
-		if(this.throttle.containsKey(address) && System.currentTimeMillis() - this.throttle.get(address) < this.config.proxy_getPlayerThrottle()) {
-			context.close();
-			this.throttle.put(address, System.currentTimeMillis());
-			return;
+		if(this.throttle.containsKey(address)){
+			Long time = null;
+			if(((time = this.throttle.get(address)) != null) && System.currentTimeMillis() - time < this.config.proxy_getPlayerThrottle()){
+				context.close();
+				this.throttle.put(address, System.currentTimeMillis());
+				return;
+
+			}
 		} else {
 			this.throttle.put(address, System.currentTimeMillis());
 		}
@@ -132,7 +137,7 @@ public class ProxyInboundHandler extends SimpleChannelInboundHandler<Packet> {
 			break;
 		}
 	}
-	
+
 	@Override
 	public void exceptionCaught(ChannelHandlerContext context, Throwable cause) throws Exception {
 		Channel channel = context.channel();
