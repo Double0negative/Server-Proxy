@@ -42,12 +42,10 @@ public class ProxyInboundHandler extends SimpleChannelInboundHandler<Packet> {
 	public void channelActive(ChannelHandlerContext context) throws Exception {
 		String address = this.getAddress(context.channel());
 		Long time = null;
-		if(((time = this.throttle.get(address)) != null)){
-			if(System.currentTimeMillis() - time < this.config.proxy_getPlayerThrottle()){
-				context.close();
-				this.throttle.put(address, System.currentTimeMillis());
-				return;
-			}
+		if(((time = this.throttle.get(address)) != null) && System.currentTimeMillis() - time < this.config.proxy_getPlayerThrottle()){
+			context.close();
+			this.throttle.put(address, System.currentTimeMillis());
+			return;
 		} else {
 			this.throttle.put(address, System.currentTimeMillis());
 		}
